@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -19,6 +20,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import sort.SimpleSorts;
 
 /**
  * A JavaFX 8 program to help experiment with data structures and algorithms.
@@ -139,6 +141,14 @@ public class DataStructureTester extends Application {
          * *********************************************************************
          * Sort Menu Section
          */
+        MenuItem miBubbleSortAsc = new MenuItem("Bubble Sort Ascending");
+        sortMenu.getItems().add(miBubbleSortAsc);
+        miBubbleSortAsc.setOnAction(e-> bubbleSortAsc());
+
+        MenuItem miBubbleSortDsc = new MenuItem("Bubble Sort Descending");
+        sortMenu.getItems().add(miBubbleSortDsc);
+        miBubbleSortDsc.setOnAction(e-> bubbleSortDsc());
+        
         MenuItem miSelectionSortAsc = new MenuItem("Selection Sort Ascending");
         sortMenu.getItems().add(miSelectionSortAsc);
 
@@ -204,6 +214,20 @@ public class DataStructureTester extends Application {
             Logger.getLogger(DataStructureTester.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+    public static int[] text2IntArray(String s){
+        //Convert text from the data text area to an array
+        ArrayList<Integer> intList = new ArrayList<>();
+        Scanner sc = new Scanner(s);
+        while(sc.hasNextLine()){
+            try{
+                intList.add(Integer.parseInt(sc.nextLine()));
+            }
+            catch(Exception e){
+                System.out.println("Wasn't an int, carry on");
+            }
+        }
+        return intList.stream().mapToInt(d->d).toArray();
+    }
 
     public static int[] text2IntArray(String s, int n) {
         Scanner sc = new Scanner(s);
@@ -228,5 +252,22 @@ public class DataStructureTester extends Application {
      */
     public static void main(String[] args) {
         launch(args);
+    }
+
+    private void bubbleSortAsc() {
+        int[] data = text2IntArray(taData.getText());
+        MyTimer.startMicroTime();
+        SimpleSorts.bubbleSort(data, true);
+        long milliTime = MyTimer.elapsedMicroTime();
+        taStatus.appendText("Bubble sort asc took: " + milliTime + " micro seconds\n");
+    }
+
+    private void bubbleSortDsc() {
+        int[] data = text2IntArray(taData.getText());
+        MyTimer.startMicroTime();
+        SimpleSorts.bubbleSort(data, false);
+        long milliTime = MyTimer.elapsedMicroTime();
+        taStatus.appendText("Bubble sort dsc took: " + milliTime + " micro seconds\n");
+       
     }
 }
