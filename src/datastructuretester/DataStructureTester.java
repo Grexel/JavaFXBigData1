@@ -5,6 +5,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Optional;
+import java.util.Random;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -17,10 +20,12 @@ import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import sort.SimpleSorts;
+import sort.ComplexSorts;
 
 /**
  * A JavaFX 8 program to help experiment with data structures and algorithms.
@@ -47,7 +52,7 @@ public class DataStructureTester extends Application {
         taStatus = new TextArea();
         spStatus = new ScrollPane(taStatus);
         spStatus.setFitToWidth(true);
-        spStatus.setPrefViewportHeight(50);
+        spStatus.setPrefViewportHeight(100);
 //        spStatus.setFitToHeight(true);
 
         BorderPane borderPane = new BorderPane();
@@ -124,17 +129,11 @@ public class DataStructureTester extends Application {
          * Data Menu Section
          */
         MenuItem miGenerateIntegers = new MenuItem("Generate Integers");
-        miGenerateIntegers.setOnAction(e -> {
-            for (int i = 0; i < 1000; i++) {
-                taData.appendText("" + i + "\n");
-            }
-        });
+        miGenerateIntegers.setOnAction(e ->  generateNumbers());
         dataMenu.getItems().add(miGenerateIntegers);
 
         MenuItem miRandom = new MenuItem("Randomize Data");
-        miRandom.setOnAction(e -> {
-
-        });
+        miRandom.setOnAction(e -> randomizeNumbers());
         dataMenu.getItems().add(miRandom);
 
         /**
@@ -151,15 +150,35 @@ public class DataStructureTester extends Application {
         
         MenuItem miSelectionSortAsc = new MenuItem("Selection Sort Ascending");
         sortMenu.getItems().add(miSelectionSortAsc);
+        miSelectionSortAsc.setOnAction(e-> selectionSortAsc());
 
         MenuItem miSelectionSortDsc = new MenuItem("Selection Sort Descending");
         sortMenu.getItems().add(miSelectionSortDsc);
+        miSelectionSortDsc.setOnAction(e-> selectionSortDsc());
+        
+        MenuItem miInsertionSortAsc = new MenuItem("Insertion Sort Ascending");
+        sortMenu.getItems().add(miInsertionSortAsc);
+        miInsertionSortAsc.setOnAction(e-> insertionSortAsc());
+
+        MenuItem miInsertionSortDsc = new MenuItem("Insertion Sort Descending");
+        sortMenu.getItems().add(miInsertionSortDsc);
+        miInsertionSortDsc.setOnAction(e-> insertionSortDsc());
 
         MenuItem miMergeSortAsc = new MenuItem("Merge Sort Ascending");
         sortMenu.getItems().add(miMergeSortAsc);
+        miMergeSortAsc.setOnAction(e-> mergeSortAsc());
 
         MenuItem miMergeSortDsc = new MenuItem("Merge Sort Descending");
         sortMenu.getItems().add(miMergeSortDsc);
+        miMergeSortDsc.setOnAction(e-> mergeSortDsc());
+        
+        MenuItem miQuickSortAsc = new MenuItem("Quick Sort Ascending");
+        sortMenu.getItems().add(miQuickSortAsc);
+        miQuickSortAsc.setOnAction(e-> quickSortAsc());
+
+        MenuItem miQuickSortDsc = new MenuItem("Quick Sort Descending");
+        sortMenu.getItems().add(miQuickSortDsc);
+        miQuickSortDsc.setOnAction(e-> quickSortDsc());
 
         /**
          * *********************************************************************
@@ -228,16 +247,7 @@ public class DataStructureTester extends Application {
         }
         return intList.stream().mapToInt(d->d).toArray();
     }
-
-    public static int[] text2IntArray(String s, int n) {
-        Scanner sc = new Scanner(s);
-        int[] nums = new int[n];
-        for (int i = 0; sc.hasNextInt(); i++) {
-            nums[i] = sc.nextInt();
-        }
-        return nums;
-    }
-
+    
     public static String intArray2Text(int[] a) {
         StringBuilder sb = new StringBuilder();
         String newLine = "\n";
@@ -246,7 +256,44 @@ public class DataStructureTester extends Application {
         }
         return sb.toString();
     }
-
+    public void outputArrayToTextArea(int[] array){
+        StringBuilder sb = new StringBuilder("");
+        for(int i = 0; i < array.length; i++){
+            sb.append(array[i]).append("\n");
+        }
+        
+        taData.clear();
+        taData.setText(sb.toString());
+    }
+    public void generateNumbers(){
+        int numberOfValues = 0;
+        TextInputDialog tid = new TextInputDialog("10000");
+        tid.setTitle("Enter number of values.");
+        tid.setHeaderText("Set the size of the list to sort");
+        tid.setContentText("Enter how many values you would like");
+        Optional<String> result = tid.showAndWait();
+        if(result.isPresent()){
+            try{
+                numberOfValues = Integer.parseInt(result.get());
+            }catch(NumberFormatException nfe){
+                numberOfValues = 100;
+                System.out.println("You did not enter a number.");
+            }
+        }
+        StringBuilder sb = new StringBuilder("");
+        for(int i = 0; i < numberOfValues; i++){
+            sb.append(i).append("\n");
+        }
+        taData.setText(sb.toString());
+    }
+    public void randomizeNumbers() {
+        Random rand = new Random();
+        int[] numbers = text2IntArray(taData.getText());
+        for(int i = 0; i < numbers.length; i++){
+            SimpleSorts.swap(numbers, rand.nextInt(numbers.length), rand.nextInt(numbers.length));
+        }
+        outputArrayToTextArea(numbers);
+    }
     /**
      * @param args the command line arguments
      */
@@ -260,6 +307,7 @@ public class DataStructureTester extends Application {
         SimpleSorts.bubbleSort(data, true);
         long milliTime = MyTimer.elapsedMicroTime();
         taStatus.appendText("Bubble sort asc took: " + milliTime + " micro seconds\n");
+        outputArrayToTextArea(data);
     }
 
     private void bubbleSortDsc() {
@@ -268,6 +316,83 @@ public class DataStructureTester extends Application {
         SimpleSorts.bubbleSort(data, false);
         long milliTime = MyTimer.elapsedMicroTime();
         taStatus.appendText("Bubble sort dsc took: " + milliTime + " micro seconds\n");
+        outputArrayToTextArea(data);       
+    }
+
+    private void selectionSortAsc() {
+        int[] data = text2IntArray(taData.getText());
+        MyTimer.startMicroTime();
+        SimpleSorts.selectionSort(data, true);
+        long milliTime = MyTimer.elapsedMicroTime();
+        taStatus.appendText("Selection sort asc took: " + milliTime + " micro seconds\n");
+        outputArrayToTextArea(data);    
+      
+    }
+
+    private void selectionSortDsc() {
+        int[] data = text2IntArray(taData.getText());
+        MyTimer.startMicroTime();
+        SimpleSorts.selectionSort(data, false);
+        long milliTime = MyTimer.elapsedMicroTime();
+        taStatus.appendText("Selection sort dsc took: " + milliTime + " micro seconds\n");
+        outputArrayToTextArea(data);    
        
     }
+
+    private void insertionSortAsc() {
+        int[] data = text2IntArray(taData.getText());
+        MyTimer.startMicroTime();
+        SimpleSorts.insertionSort(data, true);
+        long milliTime = MyTimer.elapsedMicroTime();
+        taStatus.appendText("Insertion sort asc took: " + milliTime + " micro seconds\n");
+        outputArrayToTextArea(data);    
+       
+    }
+
+    private void insertionSortDsc() {
+        int[] data = text2IntArray(taData.getText());
+        MyTimer.startMicroTime();
+        SimpleSorts.insertionSort(data, false);
+        long milliTime = MyTimer.elapsedMicroTime();
+        taStatus.appendText("Insertion sort dsc took: " + milliTime + " micro seconds\n");
+        outputArrayToTextArea(data);    
+      
+    }
+
+    private void mergeSortAsc() {       
+        int[] data = text2IntArray(taData.getText());
+        MyTimer.startMicroTime();
+        ComplexSorts.mergeSort(data, true);
+        long milliTime = MyTimer.elapsedMicroTime();
+        taStatus.appendText("Merge sort asc took: " + milliTime + " micro seconds\n");
+        outputArrayToTextArea(data);
+    }
+
+    private void mergeSortDsc() {
+        int[] data = text2IntArray(taData.getText());
+        MyTimer.startMicroTime();
+        ComplexSorts.mergeSort(data, false);
+        long milliTime = MyTimer.elapsedMicroTime();
+        taStatus.appendText("Merge sort dsc took: " + milliTime + " micro seconds\n");
+        outputArrayToTextArea(data);
+    }
+
+    private void quickSortAsc() {
+        int[] data = text2IntArray(taData.getText());
+        MyTimer.startMicroTime();
+        ComplexSorts.quickSort(data, true);
+        long milliTime = MyTimer.elapsedMicroTime();
+        taStatus.appendText("Quick sort asc took: " + milliTime + " micro seconds\n");
+        outputArrayToTextArea(data);
+    }
+
+    private void quickSortDsc() {
+        int[] data = text2IntArray(taData.getText());
+        MyTimer.startMicroTime();
+        ComplexSorts.quickSort(data, false);
+        long milliTime = MyTimer.elapsedMicroTime();
+        taStatus.appendText("Quick sort dsc took: " + milliTime + " micro seconds\n");
+        outputArrayToTextArea(data);
+    }
+
 }
